@@ -26,7 +26,10 @@ llm = ChatGoogleGenerativeAI(
     temperature=0.3
 )
 
-system_prompt = "You are a helpful assistant. You will help the user add tasks"
+system_prompt = """You are a helpful assistant. 
+You will help the user add tasks.
+You will help the user show existing tasks. If the user asks to show the tasks: for example "Show me my tasks" print out the tasks to the user. Print them in a bullet list.
+"""
 
 
 @tool
@@ -34,8 +37,20 @@ def add_task(task, desc=None):
     """" Add a task to the users task list. Use this when the user wants to add or create a task """
     todoist.add_task(content=task, description=desc)
 
-tools = [add_task]
+@tool
+def show_tasks():
+    """Show all tasks from todoist.Use this tool when user wants to see their tasks."""
+    results_paginator = todoist.get_tasks()
 
+    tasks = []
+    for task_list in results_paginator:
+        for task in task_list:
+            tasks.append(task.content)
+    return tasks
+
+
+
+tools = [add_task, show_tasks]
 
 
 prompt = ChatPromptTemplate([("system", system_prompt),
